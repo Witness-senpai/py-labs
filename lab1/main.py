@@ -1,8 +1,8 @@
 alphabet = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-bifreq = {i + j: 0 for i in alphabet for j in alphabet} #все возможные биграммы
 
 path_allBook = "lab1/allBook.txt"
 path_partBook = "lab1/partBook.txt"
+path_otherText = "lab1/otherText.txt"
 
 #Частота букв
 def letters_freq(path_in, path_out):
@@ -23,6 +23,7 @@ def letters_freq(path_in, path_out):
     
 #Частота биграмм
 def bigrams_freq(path_in, path_out):
+    bifreq = {i + j: 0 for i in alphabet for j in alphabet} #все возможные биграммы
     with open(path_in) as f:
         text = f.read()
         for i in range(len(text) - 1):
@@ -95,8 +96,10 @@ def decode_by_bigrams(path_in, path_out, freq_all, freq_part):
         all_text = fin.read()
     
     with open(path_out, 'w') as fout:
-        for i in range(len(all_text) - 1):
+        i = 0
+        while i < len(all_text) - 1:
             decode_bigram = all_text[i] + all_text[i+1]
+            i += 2 #увеличиваем i на 2, чтобы каждую итерацию закхватывать по 2 символа
             if decode_bigram[0].lower() in alphabet and \
                decode_bigram[1].lower() in alphabet:
                 if decode_bigram.islower():
@@ -109,15 +112,15 @@ def decode_by_bigrams(path_in, path_out, freq_all, freq_part):
             fout.write(decode_bigram)
 
 #Частотый анализ по буквам и биграммам в исходном тексте всей книги
-lFreq_all = letters_freq(path_allBook, "lab1/letters_freq_all.txt")
-biFreq_all = bigrams_freq(path_allBook, "lab1/bigrams_freq_all.txt")
+lFreq_all = letters_freq(path_allBook, "lab1/allBook_letters_freq.txt")
+biFreq_all = bigrams_freq(path_allBook, "lab1/allBook_bigrams_freq.txt")
 
 #Зашифровка шифром Цезаря части исходного текста книги
 cesar_encode(path_partBook, "lab1/partBook_encode.txt", 3)
 
 #Частотный анализ по буквам и биграммам зашифрованной части текста книги
-lFreq_part = letters_freq("lab1/partBook_encode.txt", "lab1/letters_freq_encode.txt")
-biFreq_part = bigrams_freq("lab1/partBook_encode.txt", "lab1/bigrams_freq_encode.txt")
+lFreq_part = letters_freq("lab1/partBook_encode.txt", "lab1/partBook_letters_freq.txt")
+biFreq_part = bigrams_freq("lab1/partBook_encode.txt", "lab1/partBook_bigrams_freq.txt")
 
 #Расшифрока части книги на основе частотного анализа букв во всей книге
 decode_by_letters("lab1/partBook_encode.txt", "lab1/partBook_decode_letters.txt", lFreq_all, lFreq_part)
@@ -125,3 +128,14 @@ decode_by_letters("lab1/partBook_encode.txt", "lab1/partBook_decode_letters.txt"
 #Расшифровка на оcнове биграмм
 decode_by_bigrams("lab1/partBook_encode.txt", "lab1/partBook_decode_bigrams.txt", biFreq_all, biFreq_part)
 
+
+#Шифрование случайного текста, не связанного с книгой
+cesar_encode(path_otherText, "lab1/otherText_encode.txt", 3)
+
+#Частотный анализ по буквам и биграммам зашифрованной части текста книги
+lFreq_other = letters_freq("lab1/otherText_encode.txt", "lab1/otherText_letters_freq.txt")
+biFreq_part = bigrams_freq("lab1/otherText_encode.txt", "lab1/otherText_bigrams_freq.txt")
+
+#Расшифровка другого текста на основе частотного анализа букв и биграм первоначального
+decode_by_letters("lab1/otherText_encode.txt", "lab1/otherText_decode_letters.txt", lFreq_all, lFreq_other)
+decode_by_bigrams("lab1/otherText_encode.txt", "lab1/otherText_decode_bigrams.txt", biFreq_all, biFreq_part)
