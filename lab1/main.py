@@ -10,6 +10,7 @@ def letters_freq(path_in, path_out):
 
     with open(path_in) as f:
         text = f.read()
+        print(str(len(text)))
         for letter in text:
             if (letter.lower() in alphabet):
                 lfreq[letter.lower()] += 1
@@ -110,6 +111,9 @@ def decode_by_bigrams(path_in, path_out, freq_all, freq_part):
                 else:
                     decode_bigram = freq_all[findIndex(freq_part, decode_bigram.lower())][0].upper()
             fout.write(decode_bigram)
+
+
+
 
 #Частотый анализ по буквам и биграммам в исходном тексте всей книги
 lFreq_all = letters_freq(path_allBook, "lab1/allBook_letters_freq.txt")
