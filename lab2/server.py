@@ -1,21 +1,23 @@
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind((socket.gethostname(), 1234))
-#sock.listen(2)
+sock.bind((socket.gethostname(), 3125))
+sock.listen(2)
 
 clients = []
 
 while True:
     clients.append(sock.accept())
-    msg = sock.recv(1024)
-    print(msg.decode('utf-8'))  
-    #clients[0][0].send(bytes("sas", "utf-8"))
-    
+
     #Когда оба клиента подключены
     if len(clients) == 2:
-        msg = sock.recv(1024)
-        print(msg.decode('utf-8'))
+        #print('Got connection from ' + clients[0][1][0] + " : " + str(clients[0][1][1]))
+        msg = clients[0][0].recv(1024).decode("utf-8") 
+        msg = msg.split('\n')
+        a = msg[1]
+        g = msg[2]
+        p = msg[3]
+        A = msg[4]
+        print(str(a) + " " + str(p) + " " + str(g) + " " + str(A))
 
-    
-clients[0].close()
+clients[0][0].close()
