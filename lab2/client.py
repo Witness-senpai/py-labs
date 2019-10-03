@@ -5,64 +5,53 @@ import random
 simples = [3433, 3449, 3457, 3461, 3463, 3467, 3469, 3491, 3499, 3511, 3517]
 #Числа a, b, g генерируются случайно, p - простое число берётся из simples
 
-name = input("Enter your name: ")
-key = input("Do you want to generate starts values y/n?")
+name = input("Введите ваше имя: ")
+key = input("Хотите сгенерировать случайные параметры? (y/n)  ")
 
 sock = socket.socket()
 sock.connect((socket.gethostname(), 3125)) 
 
-if 'y' in key:
-    a = random.randint(100, 500)
-    g = random.randint(10, 20)
-    p = simples[random.randint(0, len(simples) - 1)]
-    print(name + ": отправка a, g, p, A собеседнику: " + 
-        str(a) + "\n" + \
-        str(g) + "\n" + \
-        str(p) + "\n" + \
-        str((g ** a) % p))
-    #Отправка сгенерированных данных второму клиенту
-    sock.sendall((name + '\n' + \
-                str(a) + "\n" + \
-                str(g) + "\n" + \
-                str(p) + "\n" + \
-                str((g ** a) % p)).encode())
-    print(name + ": ожидаю значение B от собеседника...")
-    
-    #Получение от второго клиента числа B, сгенерированного на основе отправленных данных
-    B = int(sock.recv(1024).decode("utf-8"))
-    print("От собеседника пришло B = " + str(B))
+while True:
+    if sock.recv(1024).decode('utf-8') == 'go':
+        #Отправка своего имени вне зависимо от режима
+        sock.send(name.encode())
+        print("===ЛОГ КЛИЕНТА " + name.upper() + "===")
+        if 'y' in key:
+            a = random.randint(100, 500)
+            g = random.randint(10, 20)
+            p = simples[random.randint(0, len(simples) - 1)]
+            print(f"Генерация данных: \na = {a}\ng = {g}\np = {p}\nA = {g ** a % p}")
 
-    #Генерация ключа
-    K = B ** a % p
-    print("Ключ : " + str(K))
+            #Отправка сгенерированных данных второму клиенту
+            print("Отправка собеседику: g, p, A")
+            sock.sendall((str(g) + "\n" + str(p) + "\n" + str((g ** a) % p)).encode())
+            print("Ожидание значения B от собеседника...")
+            
+            #Получение от второго клиента числа B, сгенерированного на основе отправленных данных
+            B = int(sock.recv(1024).decode("utf-8"))
+            print(f"От собеседника пришло B = {B}")
 
-else:
-    b = random.randint(100, 500)
-    print(name + ": ожидаю b, g, p, A...")
-    #Получение сгенерированных данных
-    msg = sock.recv(1024).decode("utf-8").split('\n')
-    a = msg[0]
-    g = msg[1]
-    p = msg[2]
-    A = msg[3]
-    print("От собеседника пришло: \na = " + str(a) + \
-        "\ng = " + str(g) + "\np = " + str(p) + "\nA = " + str(A))
-    #Формирование на их основе ещё одного числа и его отправка
-    B = (int(g) ** int(b)) % int(p)
-    print(name + ": генерация B = g ^ b mod p = " + str(B))
-    print(name + ": отправка В собеседнику")
-    sock.sendall(str(B).encode())
-    
-    #Генерация ключа
-    K = int(A) ** int(b) % int(p)
-    print("Ключ : " + str(K))
+            #Генерация ключа
+            K = B ** a % p
+            print(f"Генерация общего секретного ключа: K = B^a mod p = {B}^{a} mod {p} = {K}")
+        else:
+            b = random.randint(100, 500)
+            print(f"Генерирую значение b = {b}")
+            print("Ожидаю значения g, p, A...")
 
-input()
+            #Получение сгенерированных данных
+            msg = sock.recv(1024).decode("utf-8").split('\n')
+            g = msg[0]
+            p = msg[1]
+            A = msg[2]
+            print(f"От собеседника пришло: \ng = {g}\np = {p}\nA = {A}")
 
-msg = sock.recv(1024)
-print(msg.decode('utf-8'))
-
-sock.close()
-
-def generate_key(A, b, p):
-    return A ** b % p
+            #Формирование на их основе ещё одного числа и его отправка
+            B = (int(g) ** int(b)) % int(p)
+            print(f"Генерирую B = g^b mod p = {B}")
+            print("Отправляю сгенерированное значение В собеседнику")
+            sock.sendall(str(B).encode())
+            
+            #Генерация ключа
+            K = int(A) ** int(b) % int(p)
+            print(f"Генерация общего секретного ключа: K = A^b mod p = {A}^{b} mod {p} = {K}")
