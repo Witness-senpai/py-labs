@@ -1,9 +1,9 @@
 import socket
 import random
+import sys, os
 
-#некое множество простых чисел
-simples = [3433, 3449, 3457, 3461, 3463, 3467, 3469, 3491, 3499, 3511, 3517]
-#Числа a, b, g генерируются случайно, p - простое число берётся из simples
+sys.path.append(os.path.join(os.path.dirname(__file__), '../primelib'))
+from primesGenerator import primeGenerator
 
 name = input("Введите ваше имя: ")
 key = input("Хотите сгенерировать случайные параметры? (y/n)  ")
@@ -19,20 +19,23 @@ while True:
         if 'y' in key:
             a = random.randint(100, 500)
             g = random.randint(10, 20)
-            p = simples[random.randint(0, len(simples) - 1)]
-            print(f"Генерация данных: \na = {a}\ng = {g}\np = {p}\nA = {g ** a % p}")
+            #Генерация большого простого числа
+            pg = primeGenerator()
+            p = pg.nextPrime()
+            A = pow(g, a, p)
+            print(f"Генерация данных: \na = {a}\ng = {g}\np = {p}\nA = {A}")
 
             #Отправка сгенерированных данных второму клиенту
             print("Отправка собеседику: g, p, A")
-            sock.sendall((str(g) + "\n" + str(p) + "\n" + str((g ** a) % p)).encode())
+            sock.sendall((str(g) + "\n" + str(p) + "\n" + str(A)).encode())
             print("Ожидание значения B от собеседника...")
             
             #Получение от второго клиента числа B, сгенерированного на основе отправленных данных
             B = int(sock.recv(1024).decode("utf-8"))
             print(f"От собеседника пришло B = {B}")
 
-            #Генерация ключа
-            K = B ** a % p
+            #Генерация ключа K = B^a mod p
+            K = pow(B, a, p)
             print(f"Генерация общего секретного ключа: K = B^a mod p = {B}^{a} mod {p} = {K}")
         else:
             b = random.randint(100, 500)
@@ -47,11 +50,12 @@ while True:
             print(f"От собеседника пришло: \ng = {g}\np = {p}\nA = {A}")
 
             #Формирование на их основе ещё одного числа и его отправка
-            B = (int(g) ** int(b)) % int(p)
+            #B = g^b mod p
+            B = pow(int(g), int(b), int(p))
             print(f"Генерирую B = g^b mod p = {B}")
             print("Отправляю сгенерированное значение В собеседнику")
             sock.sendall(str(B).encode())
             
-            #Генерация ключа
-            K = int(A) ** int(b) % int(p)
+            #Генерация ключа K = A^b mod p
+            K = pow(int(A), int(b), int(p))
             print(f"Генерация общего секретного ключа: K = A^b mod p = {A}^{b} mod {p} = {K}")

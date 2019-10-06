@@ -3,16 +3,17 @@ import time
 import math
 
 #Генарация простых чисел с помощью теста Рабина-Мюллера
-#В параметрах выбирается 
 class primeGenerator():
     def __init__(self):
         self.prime = ''
     
     #Генерация случайного числа
+    #В параметрах выбирается мин и макс длина в битах
     def __genRandNum(self, minBit, maxBit):
         x = ''
         #Генерация случайного большого числа
-        for i in range(random.randint(minBit, maxBit)):
+        l = random.randint(minBit, maxBit)
+        for i in range(l):
             x += str(random.randint(0, 1))
 
         #Принудительное добавление '1' в первый и последний разряды
@@ -23,7 +24,7 @@ class primeGenerator():
 
     #ТестРабина-Мюллера
     def __RabinMillerTest(self):
-        #Вычисление b - наибольшее кол-во целосисленных делений prime-1 на 2
+        #Вычисление b - наибольшее кол-во целочисленных делений prime-1 на 2
         b = 0
         temp_prime = self.prime - 1
         while (temp_prime > 0):
@@ -62,16 +63,16 @@ class primeGenerator():
 
     #minBit - минимальная длина в битах
     #maxBit - максимальная длина в битах
-    def nextPrime(self, minBit=50, maxBit=100):
+    def nextPrime(self, minBit=40, maxBit=60):
         #Пока не нашли простое число генерируем новое и проверяем его тестом
         while True:
             self.prime = self.__genRandNum(minBit, maxBit)
             if (self.__RabinMillerTest()):
                 return self.prime
 
-s = time.time()
-
-pg = primeGenerator()
-prime = pg.nextPrime()
-
-print(f'Prime = {prime}, time = {time.time() - s}')
+def test():
+    pg = primeGenerator()
+    for i in range(10):
+        s = time.time()
+        prime = pg.nextPrime()
+        print(f'{i}:Prime = {prime}, time = {time.time() - s}')
