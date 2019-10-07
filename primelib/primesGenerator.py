@@ -3,7 +3,7 @@ import time
 import math
 
 #Генарация простых чисел с помощью теста Рабина-Мюллера
-class primeGenerator():
+class PGenerator():
     def __init__(self):
         self.prime = ''
     
@@ -25,16 +25,19 @@ class primeGenerator():
     #ТестРабина-Мюллера
     def __RabinMillerTest(self):
         #Вычисление b - наибольшее кол-во целочисленных делений prime-1 на 2
-        b = 0
+        b = 1
         temp_prime = self.prime - 1
         while (temp_prime > 0):
-            temp_prime /= 2
-            if (temp_prime % 1 > 0): 
+            temp_prime //= 2
+            #Если число нечётное, то на 2 без остатка разделить уже не сможем, значит выход
+            if (temp_prime % 2 == 1): 
                 break
             b += 1
         
-        #Вычисление m такое, что prime - 1 = 2^b * m
-        m = int( (self.prime - 1) / 2 ** b )
+        #Вычисление m такое, что prime - 1 = 2^b * m.
+        #Заведомо известно, что все числа - целые, поэтому явно используем 
+        #целочиселнное деление //, что позволит сохранить точность
+        m = int( (self.prime - 1) // (2 ** b) )
 
         #Количество раундов(шагов) берётся порядка log2(prime)
         for step in range(len(str(self.prime))):
@@ -63,7 +66,7 @@ class primeGenerator():
 
     #minBit - минимальная длина в битах
     #maxBit - максимальная длина в битах
-    def nextPrime(self, minBit=40, maxBit=60):
+    def nextPrime(self, minBit=128, maxBit=128):
         #Пока не нашли простое число генерируем новое и проверяем его тестом
         while True:
             self.prime = self.__genRandNum(minBit, maxBit)
@@ -71,7 +74,7 @@ class primeGenerator():
                 return self.prime
 
 def test():
-    pg = primeGenerator()
+    pg = PGenerator()
     for i in range(10):
         s = time.time()
         prime = pg.nextPrime()

@@ -3,7 +3,7 @@ import random
 import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../primelib'))
-from primesGenerator import primeGenerator
+from primesGenerator import PGenerator
 
 name = input("Введите ваше имя: ")
 key = input("Хотите сгенерировать случайные параметры? (y/n)  ")
@@ -20,7 +20,7 @@ while True:
             a = random.randint(100, 500)
             g = random.randint(10, 20)
             #Генерация большого простого числа
-            pg = primeGenerator()
+            pg = PGenerator()
             p = pg.nextPrime()
             A = pow(g, a, p)
             print(f"Генерация данных: \na = {a}\ng = {g}\np = {p}\nA = {A}")
