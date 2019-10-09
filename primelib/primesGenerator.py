@@ -23,10 +23,10 @@ class PGenerator():
         return int(x, base=2)
 
     # ТестРабина-Мюллера на простоту
-    def __RabinMillerTest(self):
+    def __RabinMillerTest(self, prime):
         # Вычисление b - наибольшее кол-во целочисленных делений prime-1 на 2
         b = 1
-        temp_prime = self.prime - 1
+        temp_prime = prime - 1
         while (temp_prime > 0):
             temp_prime //= 2
             # Если число нечётное, то на 2 без остатка разделить уже не сможем, значит выход
@@ -37,29 +37,29 @@ class PGenerator():
         # Вычисление m такое, что prime - 1 = 2^b * m.
         # Заведомо известно, что все числа - целые, поэтому явно используем 
         # целочиселнное деление //, что позволит сохранить точность
-        m = int( (self.prime - 1) // (2 ** b) )
+        m = int( (prime - 1) // (2 ** b) )
 
         # Количество раундов(шагов) берётся порядка log2(prime)
-        for step in range(len(str(self.prime))):
+        for step in range(len(str(prime))):
             # Выбор случайного а из отрезка [2, prime-2]
-            a = random.randint(2, self.prime - 2)
+            a = random.randint(2, prime - 2)
 
             # Вычисляем a ^ m mod prime
-            z = pow(a, m, self.prime)
+            z = pow(a, m, prime)
             # Prime скорее простое число
-            if (z == 1 or z == self.prime - 1):
+            if (z == 1 or z == prime - 1):
                 continue
             
             # Внутренний цикл выполняется b-1 раз
             for i in range(b - 1):
-                z = z * z % self.prime
+                z = z * z % prime
 
                 # Точно не простое число    
                 if (z == 1):
                     return False
 
                 # Вернуться к внешнему циклу
-                if (z == self.prime - 1):      
+                if (z == prime - 1):      
                     break
             return False
         return True
@@ -68,9 +68,12 @@ class PGenerator():
     def nextPrime(self, bits=128):
         # Пока не нашли простое число генерируем новое и проверяем его тестом
         while True:
-            self.prime = self.__genRandNum(bits)
-            if (self.__RabinMillerTest()):
-                return self.prime
+            prime = self.__genRandNum(bits)
+            if (self.__RabinMillerTest(prime)):
+                return prime
+    
+    def isPrime(self, number):
+        return self.__RabinMillerTest(number)
 
 def test(bits):
     pg = PGenerator()
