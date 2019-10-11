@@ -3,6 +3,7 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '../primelib'))
 from primesGenerator import PGenerator
 
+
 # Расширенный алгоритм Евклида
 def xgcd(a, b):
     """return (g, x, y) such that a*x + b*y = g = gcd(a, b)"""
@@ -13,6 +14,7 @@ def xgcd(a, b):
         x0, x1 = x1, x0 - q * x1
     return b, x0, y0
 
+
 # Нахождение модульной инверсии, что и нужно для нахождения d(секретной экспоненты)
 def mulinv(a, b):
     """return x such that (x * a) % b == 1"""
@@ -20,13 +22,18 @@ def mulinv(a, b):
     if g == 1:
         return x % b
 
+
 # Посимвольная кодировка строки
 def encrypt(data, PK):
     return [pow(ord(el), PK[0], PK[1]) for el in data]
 
+
 # Посимволная расшифровка и соединение в строку
 def decrypt(data, SK):
-    return ''.join(chr( pow(el, SK[0], SK[1]) ) for el in data)
+    return ''.join(chr(pow(el, SK[0], SK[1])) for el in data)
+
+
+print(mulinv(1, 14))
 
 """ 
 Реализация протокола RSA
