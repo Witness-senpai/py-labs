@@ -33,8 +33,6 @@ def decrypt(data, SK):
     return ''.join(chr(pow(el, SK[0], SK[1])) for el in data)
 
 
-print(mulinv(1, 14))
-
 """ 
 Реализация протокола RSA
 """

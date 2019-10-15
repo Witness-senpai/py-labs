@@ -53,3 +53,4 @@ while True:
         
         clients[0][0].close()
         clients[1][0].close()
+        break
