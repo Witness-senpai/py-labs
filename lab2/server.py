@@ -18,7 +18,7 @@ while True:
         clients[0][0].send('go'.encode())
         clients[1][0].send('go'.encode())
 
-        #Получаем их именя просто для наглядности алгоритма
+        #Получаем их имена просто для наглядности алгоритма
         name1 = clients[0][0].recv(1024).decode('utf-8')
         name2 = clients[1][0].recv(1024).decode('utf-8')
         print(f"Прослушиване клиентов: {name1} и {name2}")
