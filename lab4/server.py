@@ -1,60 +1,108 @@
 import socket
-import hashlib
-import sys
-import os
+import hashlib as h
+import random
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../primelib'))
-from primesGenerator import PGenerator
+def find_s_v(data):
+    for line in data:
+        log_s_v = line.split(';')
+        if log_s_v[0] == I:
+            s = log_s_v[1]
+            v = log_s_v[2]
+            return (s, v)
+    return (None, None)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((socket.gethostname(), 1234))
-s.listen(1)
+def get_hash(s):
+    return int(h.sha256(str(s).encode()).hexdigest(), base=16)
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.bind((socket.gethostname(), 1234))
+sock.listen(1)
 
 print("Сервер запущен. Ожидание клиентов")
 
-pg = PGenerator()
-# Генерация безопасного простого, 2*p + 1, где p - тоже простое
-save_prime = 2*pg.nextPrime(64) + 1
-while (not pg.isPrime(save_prime)):
-    save_prime = 2*pg.nextPrime(64) + 1
-N = save_prime
-# Генератор по модулю save_prime
-g = 2
-# Параметр-множитель
-k = hash(save_prime ^ g)
-    
-while True:
-    # Когда клиент подключится
-    addr, port = s.accept()
+way = -1
+while way != 0:
+    if way == -1:
+        # Когда клиент подключается в 1 раз
+        addr, port = sock.accept()
 
+    # Приём отклиента сообщения о регстр. или о входе
     way = addr.recv(1024).decode("utf-8")
 
     # Регистрация
-    if way == "1":
-        # Отправка простого числа и g
-        addr.send((f"{N}\n{g}").encode())
-        
+    if way == "1":   
         # Получение username, salt, password
         I, s, v = addr.recv(1024).decode("utf-8").split('\n')
 
         # Запись в БД полученных данных
-        with open("lab4/bd.txt", "w") as f:
-            f.write(f"{I};{s};{v}")
+        with open("bd.txt", "a") as f:
+            f.write(f"{I};{s};{v}\n")
 
-    else: # Вход
-        pass
+    elif way == "2": # Вход
+        #Получение логина(I) и сгенерированного им А от пользователя + простого числааи модуля
+        I, A, N, g = addr.recv(1024).decode("utf-8").split('\n')
 
+        # Поиск соли и верификатора для введённого логина
+        s, v = None, None
+        with open("bd.txt", "r") as f:
+            for line in f:
+                log_s_v = line.split(';')
+                if log_s_v[0] == I:
+                    s = log_s_v[1]
+                    v = int(log_s_v[2])
+        
+        if (s is None or v is None):
+            print(F"Пользователь под логином {I} не зарегестрирован!")
+            break
+        
+        # Генерация B
+        b = random.randint(1, 100)
+        #k = int(h.sha256((N + g).encode()).hexdigest(), base=16)
+        k = 3
+        B = k*v + pow(int(g), b, int(N)) % int(N)
+        print(f"B = {B}\nk = {k}")
 
+        # Отправка для пользователя B и соли
+        addr.send(f"{B}\n{s}".encode())
 
+        # Вычислям скремблер(Клиент тоже)
+        u = get_hash(A + str(B))
+        if u == 0:
+            break
+        
+        # Вычисления общего ключа сессии
+        S = pow(int(A) * pow(v, u, int(N)), b, int(N))
+        K = get_hash(str(S))
 
+        print(f"u = {u}\nk = {k}\nS = {S}\nK = {K}")
+        
+        # Получение подтверждения от клиента
+        M_from_client = addr.recv(1024).decode('utf-8')
 
+        # Генерация собственного подтверждения для сравнения с полученной
+        M = get_hash(
+            str( get_hash(N) ^ get_hash(g) ) + \
+            str(get_hash(I)) + s + str(A) + str(B) + str(K)
+            )
 
-def register():
-    pass
+        print(M)
+        
+        if (str(M) != M_from_client):
+            print("Клиент ввёл неверный пароль")
+            break
+        
+        # Подтверждения для отправки клиенту
+        R = get_hash(str(A) + str(M) + str(K))
+        addr.send(str(R).encode())
 
-def login():
-    pass
-
+        print(f"Уставлено соединение с пользователем {I} [{port[0]}:{port[1]}]")
+    else:
+        try:
+            print(f"Клиент {I} [{port[0]}:{port[1]}] отключился")
+        except:
+            print(f"Клиент [{port[0]}:{port[1]}] отключился")
+        addr.close()
+        way = -1
 
     
 
