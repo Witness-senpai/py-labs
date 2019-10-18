@@ -26,7 +26,7 @@ while way != 0:
         # Когда клиент подключается в 1 раз
         addr, port = sock.accept()
 
-    # Приём отклиента сообщения о регстр. или о входе
+    # Приём отклиента сообщения о регистрации или о входе
     way = addr.recv(1024).decode("utf-8")
 
     # Регистрация
@@ -37,6 +37,7 @@ while way != 0:
         # Запись в БД полученных данных
         with open("bd.txt", "a") as f:
             f.write(f"{I};{s};{v}\n")
+        print(f"Пользователь {I} успешно зарегестрирован")
 
     elif way == "2": # Вход
         #Получение логина(I) и сгенерированного им А от пользователя + простого числааи модуля
@@ -53,14 +54,16 @@ while way != 0:
         
         if (s is None or v is None):
             print(F"Пользователь под логином {I} не зарегестрирован!")
-            break
+            addr.send("0\n0".encode())
+            sock.close()
+            continue
         
         # Генерация B
         b = random.randint(1, 100)
         #k = int(h.sha256((N + g).encode()).hexdigest(), base=16)
-        k = 3
+        k = k = get_hash(str(N) + str(g))
         B = k*v + pow(int(g), b, int(N)) % int(N)
-        print(f"B = {B}\nk = {k}")
+        #print(f"B = {B}\nk = {k}")
 
         # Отправка для пользователя B и соли
         addr.send(f"{B}\n{s}".encode())
@@ -68,13 +71,15 @@ while way != 0:
         # Вычислям скремблер(Клиент тоже)
         u = get_hash(A + str(B))
         if u == 0:
-            break
+            print("Ошибка: u == 0")
+            addr.close()
+            continue
         
         # Вычисления общего ключа сессии
         S = pow(int(A) * pow(v, u, int(N)), b, int(N))
         K = get_hash(str(S))
 
-        print(f"u = {u}\nk = {k}\nS = {S}\nK = {K}")
+        #print(f"u = {u}\nk = {k}\nS = {S}\nK = {K}")
         
         # Получение подтверждения от клиента
         M_from_client = addr.recv(1024).decode('utf-8')
@@ -85,11 +90,12 @@ while way != 0:
             str(get_hash(I)) + s + str(A) + str(B) + str(K)
             )
 
-        print(M)
+        #print(M)
         
         if (str(M) != M_from_client):
             print("Клиент ввёл неверный пароль")
-            break
+            addr.send("0".encode())
+            continue
         
         # Подтверждения для отправки клиенту
         R = get_hash(str(A) + str(M) + str(K))
@@ -97,12 +103,6 @@ while way != 0:
 
         print(f"Уставлено соединение с пользователем {I} [{port[0]}:{port[1]}]")
     else:
-        try:
-            print(f"Клиент {I} [{port[0]}:{port[1]}] отключился")
-        except:
-            print(f"Клиент [{port[0]}:{port[1]}] отключился")
+        print(f"Клиент [{port[0]}:{port[1]}] отключился")
         addr.close()
         way = -1
-
-    
-
